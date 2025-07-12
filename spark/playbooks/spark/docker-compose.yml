@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+
+  master:
+    image: mjhea0/spark:3.0.2
+    command: bin/spark-class org.apache.spark.deploy.master.Master -h master
+    hostname: master
+    environment:
+      MASTER: spark://master:7077
+      SPARK_CONF_DIR: /conf
+      SPARK_PUBLIC_DNS: ${EXTERNAL_IP}
+    networks:
+      - traefik-public
+    ports:
+      - 4040:4040
+      - 6066:6066
+      - 7077:7077
+      - 8080:8080
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.spark.spark-data == true
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=traefik-public
+        - traefik.constraint-label=traefik-public
+        - traefik.http.routers.spark-http.rule=Host(`${DOMAIN?Variable not set}`)
+        - traefik.http.routers.spark-http.entrypoints=http
+        - traefik.http.routers.spark-http.middlewares=https-redirect
+        - traefik.http.routers.spark-https.rule=Host(`${DOMAIN?Variable not set}`)
+        - traefik.http.routers.spark-https.entrypoints=https
+        - traefik.http.routers.spark-https.tls=true
+        - traefik.http.routers.spark-https.tls.certresolver=le
+        - traefik.http.services.spark.loadbalancer.server.port=8080
+        - traefik.http.middlewares.admin-auth.basicauth.users=${USERNAME?Variable not set}:${HASHED_PASSWORD?Variable not set}
+
+  worker:
+    image: mjhea0/spark:3.0.2
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
+    hostname: worker
+    environment:
+      SPARK_CONF_DIR: /conf
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 4g
+      SPARK_PUBLIC_DNS: ${EXTERNAL_IP}
+    depends_on:
+      - master
+    networks:
+      - worker-network
+      - traefik-public
+    ports:
+      - 8081:8081
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == worker
+
+networks:
+  worker-network:
+    attachable: true
+  traefik-public:
+    external: true
+
+volumes:
+  spark-data:

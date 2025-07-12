@@ -1,0 +1,8 @@
+main_node: Hermes-1
+traefik_username: hermesadmin
+traefik_password: 
+traefik_email: 
+traefik_domain: 
+portainer_domain:
+spark_domain: 
+spark_username: 

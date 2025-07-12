@@ -1,0 +1,21 @@
+- hosts: master
+
+  tasks:
+    - name: Copy spark dir
+      synchronize:
+        src: .
+        dest: .
+
+    - name: Add spark label for main node
+      shell: 'docker node update --label-add spark.spark-data=true {{ main_node }}'
+
+    - name: Deploy spark
+      shell: 'docker stack deploy -c spark/docker-compose.yml spark'
+      environment:
+        - DOMAIN: '{{ spark_domain }}'
+        - EXTERNAL_IP: '{{ spark_domain }}'
+        - USERNAME: '{{ spark_username }}'
+        - HASHED_PASSWORD: '{{ hashed_password }}'
+      args:
+        chdir: $HOME
+

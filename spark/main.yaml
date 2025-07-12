@@ -1,0 +1,6 @@
+- import_playbook: playbooks/docker-dependencies.yaml
+- import_playbook: playbooks/swarm-master.yaml
+- import_playbook: playbooks/swarm-worker.yaml
+- import_playbook: playbooks/traefik/traefik.yaml
+- import_playbook: playbooks/portainer/portainer.yaml
+- import_playbook: playbooks/spark/spark.yaml
