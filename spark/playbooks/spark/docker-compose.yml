@@ -3,8 +3,8 @@ version: '3.8'
 services:
 
   master:
-    image: mjhea0/spark:3.0.2
-    command: bin/spark-class org.apache.spark.deploy.master.Master -h master
+    image: bitnami/spark:4.0.0
+    command: bin/spark-class org.apache.spark.deploy.master.Master -h 0.0.0.0
     hostname: master
     environment:
       MASTER: spark://master:7077
@@ -37,13 +37,13 @@ services:
         - traefik.http.middlewares.admin-auth.basicauth.users=${USERNAME?Variable not set}:${HASHED_PASSWORD?Variable not set}
 
   worker:
-    image: mjhea0/spark:3.0.2
+    image: bitnami/spark:4.0.0
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
     hostname: worker
     environment:
       SPARK_CONF_DIR: /conf
-      SPARK_WORKER_CORES: 2
-      SPARK_WORKER_MEMORY: 4g
+      SPARK_WORKER_CORES: 8
+      SPARK_WORKER_MEMORY: 12g
       SPARK_PUBLIC_DNS: ${EXTERNAL_IP}
     depends_on:
       - master
